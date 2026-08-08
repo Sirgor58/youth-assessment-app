@@ -68,14 +68,83 @@ def db():
     return c
 
 def init_db():
-    c = db(); cur = c.cursor()
-    cols = [r['name'] for r in cur.execute('PRAGMA table_info(assessments)')]
-    if 'assessment_period' not in cols:
-        cur.execute("ALTER TABLE assessments ADD COLUMN assessment_period TEXT DEFAULT 'Baseline'")
-    if 'assessment_type' not in cols:
-        cur.execute("ALTER TABLE assessments ADD COLUMN assessment_type TEXT DEFAULT 'Current'")
-    c.commit(); c.close()
+    c = db()
+    cur = c.cursor()
 
+    # -------------------------------
+    # Participants table
+    # -------------------------------
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS participants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            participant_id TEXT UNIQUE NOT NULL,
+            participant_name TEXT NOT NULL,
+            gender TEXT,
+            school_level TEXT,
+            school_name TEXT,
+            caregiver_name TEXT,
+            caregiver_phone TEXT
+        )
+    """)
+
+    # -------------------------------
+    # Assessments table
+    # -------------------------------
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS assessments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assessor_name TEXT,
+            participant_name TEXT,
+            participant_id TEXT,
+            assessment_date TEXT,
+            assessment_area TEXT,
+            total_score INTEGER,
+            maximum_score INTEGER,
+            percentage REAL,
+            interpretation TEXT,
+            recommendation TEXT,
+            assessment_type TEXT DEFAULT 'Current',
+            assessment_period TEXT DEFAULT 'Baseline'
+        )
+    """)
+
+    # -------------------------------
+    # Assessment answers table
+    # -------------------------------
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS assessment_answers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            assessment_id INTEGER,
+            question_number INTEGER,
+            question TEXT,
+            score INTEGER,
+            FOREIGN KEY (assessment_id) REFERENCES assessments(id)
+        )
+    """)
+
+    # -------------------------------
+    # Add newer columns if an older
+    # local database already exists
+    # -------------------------------
+    cols = [
+        r['name']
+        for r in cur.execute("PRAGMA table_info(assessments)")
+    ]
+
+    if 'assessment_period' not in cols:
+        cur.execute("""
+            ALTER TABLE assessments
+            ADD COLUMN assessment_period TEXT DEFAULT 'Baseline'
+        """)
+
+    if 'assessment_type' not in cols:
+        cur.execute("""
+            ALTER TABLE assessments
+            ADD COLUMN assessment_type TEXT DEFAULT 'Current'
+        """)
+
+    c.commit()
+    c.close()
 def login_required(f):
     @wraps(f)
     def wrapper(*a, **kw):
