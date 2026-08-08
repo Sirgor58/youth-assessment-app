@@ -1,1 +1,129 @@
-{% extends 'base.html' %}{% block content %}<div class="titlebar"><div><h1>Assessment</h1><p class="muted">{{p.participant_name}} • {{p.participant_id}}</p></div></div><form method="post" class="card formcard"><label>Person Conducting Assessment</label><input name="assessor_name" value="{{session.user}}" required><label>Date of Assessment</label><input type="date" name="assessment_date" value="{{request.form.get('assessment_date','')}}" required><label>Assessment Period</label><select name="assessment_period">{% for x in periods %}<option {{'selected' if period==x}}>{{x}}</option>{% endfor %}</select><label>Assessment Area</label><select name="assessment_area" onchange="this.form.submit()"><option value="">Select Assessment Area</option>{% for x in areas %}<option value="{{x}}" {{'selected' if area==x}}>{{x}}</option>{% endfor %}</select>{% if questions %}<h2>{{area}}</h2>{% for q in questions %}<div class="question"><b>{{loop.index}}. {{q}}</b><select name="q{{loop.index}}" required><option value="">Select Score</option>{% for n,text in [(0,'0 - Not Demonstrated'),(1,'1 - Needs Support'),(2,'2 - Improved'),(3,'3 - Enhanced'),(4,'4 - Transformational Growth')] %}<option value="{{n}}">{{text}}</option>{% endfor %}</select></div>{% endfor %}<label>Recommendation (optional)</label><textarea name="recommendation" placeholder="Leave blank for automatic recommendation"></textarea><button name="save" value="1">SAVE ASSESSMENT</button>{% else %}<p class="muted">Select an assessment area to display its five questions.</p>{% endif %}</form>{% endblock %}
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="titlebar">
+    <div>
+        <h1>New Assessment</h1>
+        <p class="muted">
+            {{ p.participant_name }} • {{ p.participant_id }}
+        </p>
+    </div>
+</div>
+
+<form method="post" class="card formcard">
+
+    <label>Person Conducting Assessment</label>
+    <input
+        type="text"
+        name="assessor_name"
+        value="{{ session.user }}"
+        required
+    >
+
+    <label>Date of Assessment</label>
+    <input
+        type="date"
+        name="assessment_date"
+        value="{{ request.form.get('assessment_date', '') }}"
+        required
+    >
+
+    <label>Assessment Period</label>
+    <select name="assessment_period">
+        {% for x in periods %}
+            <option value="{{ x }}" {% if period == x %}selected{% endif %}>
+                {{ x }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Assessment Area</label>
+    <select
+        name="assessment_area"
+        onchange="this.form.submit()"
+    >
+        <option value="">Select Assessment Area</option>
+
+        {% for x in areas %}
+            <option value="{{ x }}" {% if area == x %}selected{% endif %}>
+                {{ x }}
+            </option>
+        {% endfor %}
+    </select>
+
+    {% if questions %}
+
+        <div class="assessment-heading">
+            <h2>{{ area }}</h2>
+            <p class="muted">
+                Score each question from 0 to 4.
+            </p>
+        </div>
+
+        {% for q in questions %}
+
+            <div class="question card">
+
+                <b>
+                    {{ loop.index }}. {{ q }}
+                </b>
+
+                <select name="q{{ loop.index }}" required>
+                    <option value="">Select Score</option>
+
+                    <option value="0">
+                        0 - Not Demonstrated
+                    </option>
+
+                    <option value="1">
+                        1 - Needs Support
+                    </option>
+
+                    <option value="2">
+                        2 - Improved
+                    </option>
+
+                    <option value="3">
+                        3 - Enhanced
+                    </option>
+
+                    <option value="4">
+                        4 - Transformational Growth
+                    </option>
+
+                </select>
+
+            </div>
+
+        {% endfor %}
+
+        <label>Recommendation (Optional)</label>
+
+        <textarea
+            name="recommendation"
+            rows="4"
+            placeholder="Leave blank for automatic recommendation"
+        ></textarea>
+
+        <button
+            type="submit"
+            name="save"
+            value="1"
+        >
+            SAVE ASSESSMENT
+        </button>
+
+    {% else %}
+
+        <div class="card">
+            <p class="muted">
+                Select an assessment area to display its five questions.
+            </p>
+        </div>
+
+    {% endif %}
+
+</form>
+
+{% endblock %}
